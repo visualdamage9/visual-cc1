@@ -1,4 +1,3 @@
-
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -31,7 +30,10 @@ document.body.style.cssText = `
   margin:0;
   overflow:hidden;
   background:#020308;
+  width:100%;
+  height:100%;
 `;
+document.documentElement.style.cssText = 'width:100%;height:100%;overflow:hidden;';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x020308);
@@ -60,7 +62,7 @@ renderer.toneMappingExposure = 1.2;
 renderer.domElement.style.cssText = `
   display:block;
   width:100vw;
-  height:100vh;
+  height:100dvh;
 `;
 
 document.body.appendChild(renderer.domElement);
@@ -101,188 +103,109 @@ scene.add(redLight);
 // =====================================================
 
 const style = document.createElement('style');
-
 style.textContent = `
   #vp-panel {
-    position:fixed;
-    z-index:1000;
-    top:20px;
-    left:20px;
-    width:290px;
-    padding:17px;
-    box-sizing:border-box;
-    color:#e8edf7;
-    background:rgba(5,8,17,.9);
-    border:1px solid rgba(160,190,255,.3);
-    backdrop-filter:blur(14px);
-    box-shadow:0 0 35px rgba(40,90,180,.14);
-    font-family:Arial,sans-serif;
+    position:fixed; z-index:1000; top:20px; left:20px; width:300px;
+    max-height:calc(100dvh - 40px); overflow-y:auto; padding:16px;
+    box-sizing:border-box; color:#e8edf7; background:rgba(5,8,17,.9);
+    border:1px solid rgba(160,190,255,.3); backdrop-filter:blur(14px);
+    box-shadow:0 0 35px rgba(40,90,180,.14); font-family:Arial,sans-serif;
+    transition:opacity .22s ease, transform .22s ease;
   }
-
   #vp-panel * { box-sizing:border-box; }
-
-  #vp-panel .brand {
-    font-size:20px;
-    letter-spacing:6px;
-    font-weight:700;
-    margin-bottom:4px;
+  #vp-panel .brand { font-size:20px; letter-spacing:6px; font-weight:700; margin-bottom:4px; }
+  #vp-panel .sub { color:#8291aa; font-size:9px; letter-spacing:3px; margin-bottom:13px; }
+  #vp-panel button, #vp-panel label.file {
+    background:#111a2b; border:1px solid #40516e; color:#eaf0ff;
+    padding:11px 12px; cursor:pointer; font-size:10px; letter-spacing:1.2px;
+    transition:.2s; touch-action:manipulation;
   }
-
-  #vp-panel .sub {
-    color:#8291aa;
-    font-size:9px;
-    letter-spacing:3px;
-    margin-bottom:17px;
-  }
-
-  #vp-panel button,
-  #vp-panel label.file {
-    background:#111a2b;
-    border:1px solid #40516e;
-    color:#eaf0ff;
-    padding:10px 12px;
-    cursor:pointer;
-    font-size:10px;
-    letter-spacing:1.3px;
-    transition:.2s;
-  }
-
-  #vp-panel button:hover,
-  #vp-panel label.file:hover {
-    background:#243650;
-    border-color:#9abaff;
-  }
-
-  #vp-panel .buttons {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:7px;
-    margin:10px 0;
-  }
-
-  #vp-panel button.wide {
-    width:100%;
-    margin-top:7px;
-  }
-
+  #vp-panel button:hover, #vp-panel label.file:hover { background:#243650; border-color:#9abaff; }
+  #vp-panel button:active { transform:scale(.98); }
+  #vp-panel .buttons { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin:10px 0; }
+  #vp-panel .mode-buttons { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:8px 0 12px; }
+  #vp-panel button.wide { width:100%; margin-top:7px; }
   #vp-panel input[type=file] { display:none; }
-  #vp-panel input[type=range] {
-    width:100%;
-    accent-color:#9abaff;
+  #vp-panel input[type=range] { width:100%; accent-color:#9abaff; }
+  #vp-panel .line { height:1px; background:rgba(160,190,255,.2); margin:13px 0; }
+  #vp-panel .small { color:#8291aa; font-size:9px; letter-spacing:1.5px; margin:10px 0 6px; }
+  #vp-status { color:#9abaff; font-size:10px; line-height:1.5; min-height:28px; margin-top:10px; }
+  #vp-time { display:flex; justify-content:space-between; color:#8190a8; font-size:9px; margin-top:3px; }
+  #vp-panel .rec { border-color:#87485c; color:#ffb4c6; }
+  #vp-panel .hint { color:#65738b; font-size:9px; line-height:1.5; margin-top:10px; }
+  #vp-panel .mode { border-color:#718ab5; color:#bcd4ff; }
+  #vp-panel button.selected { background:#263b59; border-color:#b7d0ff; color:#fff; }
+  #vp-toggle {
+    position:fixed; z-index:1002; top:14px; left:14px; width:44px; height:44px;
+    display:none; border:1px solid rgba(160,190,255,.45); border-radius:2px;
+    color:#eaf0ff; background:rgba(5,8,17,.82); font-size:20px;
+    backdrop-filter:blur(12px); cursor:pointer;
   }
-
-  #vp-panel .line {
-    height:1px;
-    background:rgba(160,190,255,.2);
-    margin:14px 0;
-  }
-
-  #vp-panel .small {
-    color:#8291aa;
-    font-size:9px;
-    letter-spacing:1.5px;
-    margin:10px 0 6px;
-  }
-
-  #vp-status {
-    color:#9abaff;
-    font-size:10px;
-    line-height:1.5;
-    min-height:28px;
-    margin-top:10px;
-  }
-
-  #vp-time {
-    display:flex;
-    justify-content:space-between;
-    color:#8190a8;
-    font-size:9px;
-    margin-top:3px;
-  }
-
-  #vp-panel .rec {
-    border-color:#87485c;
-    color:#ffb4c6;
-  }
-
-  #vp-panel .hint {
-    color:#65738b;
-    font-size:9px;
-    line-height:1.5;
-    margin-top:12px;
-  }
-
-  #vp-panel .mode {
-    border-color:#718ab5;
-    color:#bcd4ff;
-  }
-
+  #vp-panel.is-hidden { opacity:0; pointer-events:none; transform:translateX(-110%); }
+  #vp-toggle.is-visible { display:block; }
   @media(max-width:600px) {
-    #vp-panel {
-      width:245px;
-      top:10px;
-      left:10px;
-      padding:12px;
-    }
+    #vp-panel { top:8px; left:8px; width:min(285px, calc(100vw - 16px));
+      max-height:calc(100dvh - 16px); padding:12px; }
+    #vp-panel .brand { font-size:18px; }
+    #vp-panel button, #vp-panel label.file { min-height:40px; }
+    #vp-toggle { top:10px; left:10px; width:46px; height:46px; }
   }
 `;
-
 document.head.appendChild(style);
 
 const panel = document.createElement('div');
 panel.id = 'vp-panel';
-
 panel.innerHTML = `
   <div class="brand">visual+</div>
   <div class="sub">CODE_001 / DEEP SPACE</div>
-
+  <button id="vp-hide" class="wide">HIDE UI −</button>
+  <div class="small">AUDIO SOURCE</div>
+  <div class="mode-buttons">
+    <button id="vp-original" class="selected">VISUAL+ ORIGINAL</button>
+    <button id="vp-custom">YOUR AUDIO</button>
+  </div>
   <label class="file" style="display:block;text-align:center">
-    LOAD AUDIO FILE
-    <input id="vp-file" type="file" accept="audio/*">
+    LOAD WAV / MP3
+    <input id="vp-file" type="file" accept="audio/wav,audio/mpeg,audio/mp3,audio/*">
   </label>
-
   <div class="buttons">
     <button id="vp-play">PLAY</button>
     <button id="vp-pause">PAUSE</button>
   </div>
-
   <div class="small">TRACK POSITION</div>
   <input id="vp-seek" type="range" min="0" max="100" value="0">
-
-  <div id="vp-time">
-    <span id="vp-current">00:00</span>
-    <span id="vp-duration">00:00</span>
-  </div>
-
+  <div id="vp-time"><span id="vp-current">00:00</span><span id="vp-duration">00:00</span></div>
   <div class="line"></div>
-
-  <button id="vp-cinema" class="wide mode">
-    CINEMA MODE / 1440P
-  </button>
-
-  <button id="vp-record" class="wide rec">
-    ● RECORD VIDEO
-  </button>
-
-  <button id="vp-stop" class="wide">
-    STOP RECORDING
-  </button>
-
-  <button id="vp-save" class="wide">
-    SAVE WEBM
-  </button>
-
-  <div id="vp-status">SYSTEM READY / LOAD AUDIO</div>
-
-  <div class="hint">
-    Audio-reactive journey through deep space.<br>
-    Cinema output: 2560 × 1440 / 60 FPS target.
-  </div>
+  <button id="vp-cinema" class="wide mode">CINEMA MODE / 1440P</button>
+  <button id="vp-record" class="wide rec">● RECORD VIDEO</button>
+  <button id="vp-stop" class="wide">STOP RECORDING</button>
+  <button id="vp-save" class="wide">SAVE WEBM</button>
+  <div id="vp-status">VISUAL+ ORIGINAL / READY</div>
+  <div class="hint">The space animation starts automatically. Sound may require one tap due to browser autoplay rules.<br>Mobile: hide this panel for fullscreen view.</div>
 `;
-
 document.body.appendChild(panel);
+const toggle = document.createElement('button');
+toggle.id = 'vp-toggle';
+toggle.type = 'button';
+toggle.textContent = '+';
+toggle.setAttribute('aria-label', 'Show controls');
+document.body.appendChild(toggle);
 
 const $ = id => document.getElementById(id);
+
+toggle.addEventListener('click', () => {
+  panel.classList.remove('is-hidden');
+  toggle.classList.remove('is-visible');
+});
+function hidePanel() {
+  panel.classList.add('is-hidden');
+  toggle.classList.add('is-visible');
+}
+// Double-click/tap the panel header to hide controls; the + button restores them.
+panel.querySelector('.brand').style.cursor = 'pointer';
+panel.querySelector('.brand').title = 'Tap to hide controls';
+panel.querySelector('.brand').addEventListener('click', hidePanel);
+$('vp-hide').addEventListener('click', hidePanel);
 
 function status(message) {
   $('vp-status').textContent = message;
@@ -342,72 +265,121 @@ function prepareAudio() {
   audioReady = true;
 }
 
+const ORIGINAL_AUDIO = '/music.wav';
+let audioMode = 'original';
+
+audio.src = ORIGINAL_AUDIO;
+audio.load();
+
+function setAudioMode(mode) {
+  audio.pause();
+  audio.currentTime = 0;
+  audioMode = mode;
+  $('vp-seek').value = 0;
+  $('vp-current').textContent = '00:00';
+  $('vp-duration').textContent = '00:00';
+  $('vp-original').classList.toggle('selected', mode === 'original');
+  $('vp-custom').classList.toggle('selected', mode === 'custom');
+  if (mode === 'original') {
+    if (audioURL) { URL.revokeObjectURL(audioURL); audioURL = null; }
+    audio.src = ORIGINAL_AUDIO;
+    audio.load();
+    status('VISUAL+ ORIGINAL / PRESS PLAY');
+  } else {
+    status('YOUR AUDIO / LOAD A WAV OR MP3');
+  }
+}
+
 function loadAudioFile(file) {
   if (!file) return;
-
-  if (audioURL) {
-    URL.revokeObjectURL(audioURL);
+  if (!file.type.startsWith('audio/')) {
+    status('UNSUPPORTED FILE / CHOOSE WAV OR MP3');
+    return;
   }
-
+  if (audioURL) URL.revokeObjectURL(audioURL);
+  audio.pause();
   audioURL = URL.createObjectURL(file);
   audio.src = audioURL;
   audio.load();
-
-  status('AUDIO LOADED / PRESS PLAY');
+  audioMode = 'custom';
+  $('vp-original').classList.remove('selected');
+  $('vp-custom').classList.add('selected');
+  status('YOUR AUDIO LOADED / PRESS PLAY');
 }
 
+$('vp-original').addEventListener('click', () => setAudioMode('original'));
+$('vp-custom').addEventListener('click', () => {
+  audio.pause();
+  audioMode = 'custom';
+  $('vp-original').classList.remove('selected');
+  $('vp-custom').classList.add('selected');
+  status('YOUR AUDIO / CHOOSE WAV OR MP3');
+  $('vp-file').click();
+});
 $('vp-file').addEventListener('change', event => {
   loadAudioFile(event.target.files[0]);
+  event.target.value = '';
 });
 
 audio.addEventListener('loadedmetadata', () => {
   $('vp-duration').textContent = timeString(audio.duration);
 });
-
 audio.addEventListener('timeupdate', () => {
   if (!audio.duration || !Number.isFinite(audio.duration)) return;
-
-  $('vp-seek').value =
-    (audio.currentTime / audio.duration) * 100;
-
-  $('vp-current').textContent =
-    timeString(audio.currentTime);
+  $('vp-seek').value = (audio.currentTime / audio.duration) * 100;
+  $('vp-current').textContent = timeString(audio.currentTime);
 });
-
 audio.addEventListener('error', () => {
-  status('AUDIO ERROR / LOAD AN AUDIO FILE');
+  if (audioMode === 'original') status('ORIGINAL TRACK NOT FOUND / CHECK public/music.wav');
+  else status('AUDIO ERROR / TRY ANOTHER FILE');
 });
 
-$('vp-play').addEventListener('click', async () => {
+async function startPlayback() {
   try {
     prepareAudio();
     await audioContext.resume();
-
     if (!audio.src) {
-      audio.src = '/music.wav';
+      audio.src = audioMode === 'original' ? ORIGINAL_AUDIO : '';
       audio.load();
     }
-
     await audio.play();
-    status('PLAYING / AUDIO REACTIVE SYSTEM ACTIVE');
-
+    status(audioMode === 'original'
+      ? 'VISUAL+ ORIGINAL / AUDIO REACTIVE'
+      : 'YOUR AUDIO / AUDIO REACTIVE');
   } catch (error) {
     console.error(error);
-    status('PLAY ERROR / LOAD AUDIO FILE');
+    status('PRESS PLAY TO START AUDIO / CHECK TRACK');
   }
-});
-
+}
+$('vp-play').addEventListener('click', startPlayback);
 $('vp-pause').addEventListener('click', () => {
   audio.pause();
   status('AUDIO PAUSED');
 });
-
 $('vp-seek').addEventListener('input', event => {
   if (audio.duration && Number.isFinite(audio.duration)) {
-    audio.currentTime =
-      Number(event.target.value) / 100 * audio.duration;
+    audio.currentTime = Number(event.target.value) / 100 * audio.duration;
   }
 });
+
+// Attempt autoplay. Browsers may block audible autoplay; the scene still starts,
+// and the first user tap/click anywhere on the page can unlock the original track.
+let autoplayUnlocked = false;
+async function tryAutoplay() {
+  try {
+    prepareAudio();
+    await audioContext.resume();
+    await audio.play();
+    autoplayUnlocked = true;
+    status('VISUAL+ ORIGINAL / AUTOPLAY ACTIVE');
+  } catch (error) {
+    status('SPACE ACTIVE / TAP PLAY FOR SOUND');
+  }
+}
+window.addEventListener('pointerdown', () => {  if (autoplayUnlocked || audioMode !== 'original' || !audio.paused) return;
+  autoplayUnlocked = true;
+  startPlayback();
+}, { once: true, passive: true });
 
 function updateAudio() {
   if (!analyser || audio.paused) {
@@ -803,9 +775,7 @@ const dustMaterial = new THREE.PointsMaterial({
 });
 
 const dust = new THREE.Points(dustGeometry, dustMaterial);
-scene.add(dust);
-
-// =====================================================
+scene.add(dust);// =====================================================
 // PREVIEW / CINEMA MODE
 // =====================================================
 
@@ -1148,6 +1118,7 @@ window.addEventListener('resize', () => {
   );
 });
 
-status('SYSTEM READY / LOAD AUDIO OR PRESS PLAY');
+status('VISUAL+ ORIGINAL / STARTING');
+tryAutoplay();
 
-console.log('visual+ CODE_001 / CINEMA EDITION READY');
+console.log('visual+ CODE_001 / DUAL AUDIO EDITION READY');
